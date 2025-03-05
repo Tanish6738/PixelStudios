@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@radix-ui/react-hover-card": "^1.1.6",
     "@react-three/fiber": "^9.0.4",
     "@tabler/icons-react": "^3.30.0",
     "@tailwindcss/line-clamp": "^0.4.4",
@@ -19,9 +18,7 @@
     "@tsparticles/slim": "^3.8.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.477.0",
-    "mini-svg-data-uri": "^1.4.4",
     "motion": "^12.4.10",
-    "qss": "^3.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.0.2",
