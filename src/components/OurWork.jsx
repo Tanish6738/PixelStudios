@@ -65,7 +65,7 @@ const OurWork = () => {
   const y3 = useTransform(scrollYProgress, [0, 1], [0, 150]);
 
   return (
-    <div className='relative w-full min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#131313] text-white py-16 sm:py-24 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden'>
+    <div id="work" className='relative w-full min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#131313] text-white py-16 sm:py-24 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden'>
       {/* Enhanced background effects */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.3),rgba(0,0,0,0))]" />

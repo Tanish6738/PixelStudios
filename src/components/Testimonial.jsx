@@ -64,7 +64,7 @@ const Testimonial = () => {
   ];
 
   return (
-    <div className="py-12 sm:py-20 px-4 relative overflow-hidden bg-gradient-to-b from-slate-950 to-gray-800">
+    <div id="testimonials" className="py-12 sm:py-20 px-4 relative overflow-hidden bg-gradient-to-b from-slate-950 to-gray-800">
       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -translate-y-1/2 translate-x-1/2 opacity-50"></div>
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-50 rounded-full translate-y-1/2 -translate-x-1/2 opacity-50"></div>
       

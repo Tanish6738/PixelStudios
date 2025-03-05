@@ -43,7 +43,7 @@ const Expertise = () => {
   ]
 
   return (
-    <div className='w-full min-h-screen bg-[#0a0a0a] text-white py-10 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 overflow-x-hidden'>
+    <div id="expertise" className='w-full min-h-screen bg-[#0a0a0a] text-white py-10 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 overflow-x-hidden'>
       <div className='max-w-7xl mx-auto'>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}

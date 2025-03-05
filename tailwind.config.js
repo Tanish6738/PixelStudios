@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      translate: {
+        '101': '101%',
+      },
       keyframes: {
         'fade-in': {
           '0%': { opacity: '0' },
@@ -18,6 +21,18 @@ export default {
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-20px)' },
+        },
+        marquee: {
+          'from': { transform: 'translateX(0%)' },
+          'to': { transform: 'translateX(-50%)' }
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-100%)' }
+        },
+        marquee2: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' }
         }
       },
       animation: {
@@ -25,6 +40,8 @@ export default {
         'slide-up': 'slide-up 0.5s ease-out forwards',
         'pulse-slow': 'pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 6s ease-in-out infinite',
+        'marquee': 'marquee 25s linear infinite',
+        'marquee2': 'marquee2 25s linear infinite',
       }
     },
   },

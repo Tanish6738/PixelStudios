@@ -44,6 +44,7 @@ const Folder = ({
   );
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(1); // Add this state for carousel
+  const [isClosing, setIsClosing] = useState(false); // Add new state for animation
 
   const folderBackColor = darkenColor(color, 0.08);
   const paper1 = darkenColor("#ffffff", 0.1);
@@ -109,11 +110,21 @@ const Folder = ({
         setFullScreen(true);
       }, 300);
     } else {
+      setIsClosing(true);
       setFullScreen(false);
+      // Reset active index first
+      setActiveIndex(1);
+      
+      // Sequence the closing animations
       setTimeout(() => {
         setOpen(false);
+        setIsClosing(false);
+      }, 400);
+      
+      // Reset offsets last
+      setTimeout(() => {
         setPaperOffsets(Array.from({ length: maxItems }, () => ({ x: 0, y: 0 })));
-      }, 300);
+      }, 500);
     }
   };
 
@@ -240,7 +251,11 @@ const Folder = ({
           padding: window.innerWidth < 640 ? '1rem' : '2rem'
         })
       }} 
-      className={`${className} ${fullScreen ? 'fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-70' : ''}`}
+      className={`${className} ${
+        fullScreen 
+          ? 'fixed inset-0 flex items-center justify-center z-50 bg-black transition-all duration-300 ease-in-out'
+          : ''
+      } ${fullScreen ? 'bg-opacity-70' : 'bg-opacity-0'}`}
     >
       <div
         className={`group relative transition-all duration-200 ease-in cursor-pointer ${!open ? "hover:-translate-y-2" : ""} ${fullScreen ? 'w-full h-full max-w-6xl mx-auto flex items-center justify-center' : ''}`}
@@ -314,7 +329,7 @@ const Folder = ({
                 onClick={(e) => handleCardClick(e, i)}
                 onMouseMove={(e) => handlePaperMouseMove(e, i)}
                 onMouseLeave={(e) => handlePaperMouseLeave(e, i)}
-                className={`absolute z-20 transition-all duration-500 ease-in-out ${
+                className={`absolute z-20 transition-all duration-300 ease-in-out ${
                   fullScreen 
                     ? 'left-1/2 top-1/2 cursor-pointer'
                     : `bottom-[15%] left-1/2 ${!open 
@@ -339,9 +354,10 @@ const Folder = ({
                   backdropFilter: "blur(10px)",
                   perspective: "1000px",
                   transformStyle: "preserve-3d",
-                  transition: "all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  transition: `all ${isClosing ? '0.3s' : '0.4s'} cubic-bezier(0.4, 0, 0.2, 1)`,
                   filter: fullScreen && i !== activeIndex ? "brightness(0.7) saturate(0.8)" : "brightness(1)",
                   opacity: fullScreen && Math.abs(i - activeIndex) > 2 ? 0 : 1,
+                  pointerEvents: isClosing ? 'none' : 'auto',
                   ...customCardStyle,
                 }}
               >
@@ -364,7 +380,7 @@ const Folder = ({
           })}
           
           {/* Add carousel controls */}
-          {fullScreen && (
+          {fullScreen && !isClosing && (
             <>
               <button
                 onClick={handlePrev}
@@ -452,10 +468,18 @@ const Folder = ({
             <button 
               onClick={(e) => {
                 e.stopPropagation();
+                setIsClosing(true);
                 setFullScreen(false);
-                setTimeout(() => setOpen(false), 300);
+                setActiveIndex(1);
+                setTimeout(() => {
+                  setOpen(false);
+                  setIsClosing(false);
+                }, 400);
               }}
               className="absolute top-2 sm:top-4 right-2 sm:right-4 z-50 bg-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors duration-200"
+              style={{
+                pointerEvents: isClosing ? 'none' : 'auto'
+              }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

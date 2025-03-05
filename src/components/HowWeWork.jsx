@@ -66,7 +66,7 @@ const HowWeWork = () => {
   ];
 
   return (
-    <div className='relative w-full min-h-screen overflow-hidden bg-gradient-to-b from-white to-neutral-50 dark:from-black'>
+    <div id="process" className="relative w-full bg-gradient-to-b from-white to-neutral-50 dark:from-black">
       {/* Background gradients */}
       <div className="absolute inset-0 bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.1),rgba(0,0,0,0))]" />
