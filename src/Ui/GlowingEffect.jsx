@@ -1,8 +1,8 @@
-import { memo, useCallback, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef, useMemo } from "react";
 import { animate } from "motion/react";
 import {cn} from "../libs/utils";
 
-
+// Optimized version of GlowingEffect with performance improvements
 const GlowingEffect = memo(({
   blur = 0,
   inactiveZone = 0.7,
@@ -18,72 +18,113 @@ const GlowingEffect = memo(({
   const containerRef = useRef(null);
   const lastPosition = useRef({ x: 0, y: 0 });
   const animationFrameRef = useRef(0);
+  const throttleTimeoutRef = useRef(null);
 
+  // Memoize gradient styles to prevent recalculations
+  const gradientStyle = useMemo(() => ({
+    "--blur": `${blur}px`,
+    "--spread": spread,
+    "--start": "0",
+    "--active": "0",
+    "--glowingeffect-border-width": `${borderWidth}px`,
+    "--repeating-conic-gradient-times": "5",
+    "--gradient":
+      variant === "white"
+        ? `repeating-conic-gradient(
+        from 236.84deg at 50% 50%,
+        var(--black),
+        var(--black) calc(25% / var(--repeating-conic-gradient-times))
+      )`
+        : `radial-gradient(circle, #dd7bbb 10%, #dd7bbb00 20%),
+      radial-gradient(circle at 40% 40%, #d79f1e 5%, #d79f1e00 15%),
+      radial-gradient(circle at 60% 60%, #5a922c 10%, #5a922c00 20%), 
+      radial-gradient(circle at 40% 60%, #4c7894 10%, #4c789400 20%),
+      repeating-conic-gradient(
+        from 236.84deg at 50% 50%,
+        #dd7bbb 0%,
+        #d79f1e calc(25% / var(--repeating-conic-gradient-times)),
+        #5a922c calc(50% / var(--repeating-conic-gradient-times)), 
+        #4c7894 calc(75% / var(--repeating-conic-gradient-times)),
+        #dd7bbb calc(100% / var(--repeating-conic-gradient-times))
+      )`
+  }), [blur, spread, borderWidth, variant]);
+
+  // Throttle the mouse movement handler to improve performance
   const handleMove = useCallback((e) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || disabled) return;
 
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
+    // Throttle to 30fps (approximately 33ms between frames) for better performance
+    if (throttleTimeoutRef.current) return;
 
-    animationFrameRef.current = requestAnimationFrame(() => {
-      const element = containerRef.current;
-      if (!element) return;
+    throttleTimeoutRef.current = setTimeout(() => {
+      throttleTimeoutRef.current = null;
 
-      const { left, top, width, height } = element.getBoundingClientRect();
-      const mouseX = e?.x ?? lastPosition.current.x;
-      const mouseY = e?.y ?? lastPosition.current.y;
-
-      if (e) {
-        lastPosition.current = { x: mouseX, y: mouseY };
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
 
-      const center = [left + width * 0.5, top + height * 0.5];
-      const distanceFromCenter = Math.hypot(mouseX - center[0], mouseY - center[1]);
-      const inactiveRadius = 0.5 * Math.min(width, height) * inactiveZone;
+      animationFrameRef.current = requestAnimationFrame(() => {
+        const element = containerRef.current;
+        if (!element) return;
 
-      if (distanceFromCenter < inactiveRadius) {
-        element.style.setProperty("--active", "0");
-        return;
-      }
+        const { left, top, width, height } = element.getBoundingClientRect();
+        const mouseX = e?.x ?? lastPosition.current.x;
+        const mouseY = e?.y ?? lastPosition.current.y;
 
-      const isActive =
-        mouseX > left - proximity &&
-        mouseX < left + width + proximity &&
-        mouseY > top - proximity &&
-        mouseY < top + height + proximity;
+        if (e) {
+          lastPosition.current = { x: mouseX, y: mouseY };
+        }
 
-      element.style.setProperty("--active", isActive ? "1" : "0");
+        const center = [left + width * 0.5, top + height * 0.5];
+        const distanceFromCenter = Math.hypot(mouseX - center[0], mouseY - center[1]);
+        const inactiveRadius = 0.5 * Math.min(width, height) * inactiveZone;
 
-      if (!isActive) return;
+        if (distanceFromCenter < inactiveRadius) {
+          element.style.setProperty("--active", "0");
+          return;
+        }
 
-      const currentAngle =
-        parseFloat(element.style.getPropertyValue("--start")) || 0;
-      let targetAngle =
-        (180 * Math.atan2(mouseY - center[1], mouseX - center[0])) /
-          Math.PI +
-        90;
+        const isActive =
+          mouseX > left - proximity &&
+          mouseX < left + width + proximity &&
+          mouseY > top - proximity &&
+          mouseY < top + height + proximity;
 
-      const angleDiff = ((targetAngle - currentAngle + 180) % 360) - 180;
-      const newAngle = currentAngle + angleDiff;
+        element.style.setProperty("--active", isActive ? "1" : "0");
 
-      animate(currentAngle, newAngle, {
-        duration: movementDuration,
-        ease: [0.16, 1, 0.3, 1],
-        onUpdate: (value) => {
-          element.style.setProperty("--start", String(value));
-        },
+        if (!isActive) return;
+
+        const currentAngle =
+          parseFloat(element.style.getPropertyValue("--start")) || 0;
+        let targetAngle =
+          (180 * Math.atan2(mouseY - center[1], mouseX - center[0])) /
+            Math.PI +
+          90;
+
+        const angleDiff = ((targetAngle - currentAngle + 180) % 360) - 180;
+        const newAngle = currentAngle + angleDiff;
+
+        // Simplified animation with reduced complexity
+        animate(currentAngle, newAngle, {
+          duration: movementDuration,
+          ease: [0.16, 1, 0.3, 1],
+          onUpdate: (value) => {
+            if (element) {
+              element.style.setProperty("--start", String(value));
+            }
+          },
+        });
       });
-    });
-  }, [inactiveZone, proximity, movementDuration]);
+    }, 33); // 33ms throttle (approximately 30fps)
+  }, [inactiveZone, proximity, movementDuration, disabled]);
 
   useEffect(() => {
     if (disabled) return;
 
-    const handleScroll = () => handleMove();
+    // Use fewer event listeners for better performance
     const handlePointerMove = (e) => handleMove(e);
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    // Use passive event listeners to avoid blocking the main thread
     document.body.addEventListener("pointermove", handlePointerMove, {
       passive: true,
     });
@@ -92,10 +133,15 @@ const GlowingEffect = memo(({
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      window.removeEventListener("scroll", handleScroll);
+      if (throttleTimeoutRef.current) {
+        clearTimeout(throttleTimeoutRef.current);
+      }
       document.body.removeEventListener("pointermove", handlePointerMove);
     };
   }, [handleMove, disabled]);
+
+  // Return null early if disabled and glow is false to save rendering
+  if (disabled && !glow) return null;
 
   return (<>
     <div
@@ -107,36 +153,7 @@ const GlowingEffect = memo(({
       )} />
     <div
       ref={containerRef}
-      style={
-        {
-          "--blur": `${blur}px`,
-          "--spread": spread,
-          "--start": "0",
-          "--active": "0",
-          "--glowingeffect-border-width": `${borderWidth}px`,
-          "--repeating-conic-gradient-times": "5",
-
-          "--gradient":
-            variant === "white"
-              ? `repeating-conic-gradient(
-              from 236.84deg at 50% 50%,
-              var(--black),
-              var(--black) calc(25% / var(--repeating-conic-gradient-times))
-            )`
-              : `radial-gradient(circle, #dd7bbb 10%, #dd7bbb00 20%),
-            radial-gradient(circle at 40% 40%, #d79f1e 5%, #d79f1e00 15%),
-            radial-gradient(circle at 60% 60%, #5a922c 10%, #5a922c00 20%), 
-            radial-gradient(circle at 40% 60%, #4c7894 10%, #4c789400 20%),
-            repeating-conic-gradient(
-              from 236.84deg at 50% 50%,
-              #dd7bbb 0%,
-              #d79f1e calc(25% / var(--repeating-conic-gradient-times)),
-              #5a922c calc(50% / var(--repeating-conic-gradient-times)), 
-              #4c7894 calc(75% / var(--repeating-conic-gradient-times)),
-              #dd7bbb calc(100% / var(--repeating-conic-gradient-times))
-            )`
-        }
-      }
+      style={gradientStyle}
       className={cn(
         "pointer-events-none absolute inset-0 rounded-[inherit] opacity-100 transition-opacity",
         glow && "opacity-100",
